@@ -57,7 +57,7 @@ def fetch_inventory(page_size: int = 500) -> list[dict]:
     Handles pagination automatically and returns a flat list of records.
     """
     token = get_token()
-    tpl_id = os.getenv("EXTENSIV_TPL_ID")
+    tpl_guid = os.getenv("EXTENSIV_TPL_GUID")   # e.g. {1cc5cd16-1e2c-4fb2-89f6-b002aa8a66d6}
     customer_id = os.getenv("EXTENSIV_CUSTOMER_ID")
 
     headers = {
@@ -65,7 +65,7 @@ def fetch_inventory(page_size: int = 500) -> list[dict]:
         "Authorization": f"Bearer {token}",
     }
     params = {
-        "tpl": tpl_id,
+        "tpl": tpl_guid,
         "customerid": customer_id,
         "pgsiz": page_size,
         "pgnum": 1,
@@ -75,6 +75,8 @@ def fetch_inventory(page_size: int = 500) -> list[dict]:
 
     while True:
         resp = requests.get(INVENTORY_URL, headers=headers, params=params, timeout=30)
+        if not resp.ok:
+            print(f"Extensiv API error {resp.status_code}: {resp.text}")
         resp.raise_for_status()
         data = resp.json()
 
