@@ -66,7 +66,6 @@ def fetch_inventory(page_size: int = 500) -> list[dict]:
         "Authorization": f"Bearer {token}",
     }
     params = {
-        "customerid": customer_id,
         "pgsiz": page_size,
         "pgnum": 1,
     }
@@ -80,7 +79,7 @@ def fetch_inventory(page_size: int = 500) -> list[dict]:
         resp.raise_for_status()
         data = resp.json()
 
-        records = data.get("ResourceList", [])
+        records = data.get("summaries", data.get("ResourceList", []))
         all_records.extend(records)
 
         # Stop if we received fewer records than page_size (last page)
