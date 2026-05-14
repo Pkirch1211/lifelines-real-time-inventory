@@ -1,0 +1,53 @@
+name: Inventory Sync
+
+on:
+  schedule:
+    - cron: "0 11 * * 1-5"   # 7am ET Mon–Fri (UTC-4)
+  workflow_dispatch:           # allow manual trigger from GitHub UI
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    env:
+      # ── Extensiv ──────────────────────────────────────────────
+      EXTENSIV_CLIENT_ID: ${{ secrets.EXTENSIV_CLIENT_ID }}
+      EXTENSIV_CLIENT_SECRET: ${{ secrets.EXTENSIV_CLIENT_SECRET }}
+      EXTENSIV_USER_LOGIN: ${{ secrets.EXTENSIV_USER_LOGIN }}
+      EXTENSIV_TPL_ID: ${{ secrets.EXTENSIV_TPL_ID }}
+      EXTENSIV_CUSTOMER_ID: ${{ secrets.EXTENSIV_CUSTOMER_ID }}
+
+      # ── Amazon SP-API (uncomment when ready) ──────────────────
+      # AMAZON_CLIENT_ID: ${{ secrets.AMAZON_CLIENT_ID }}
+      # AMAZON_CLIENT_SECRET: ${{ secrets.AMAZON_CLIENT_SECRET }}
+      # AMAZON_REFRESH_TOKEN: ${{ secrets.AMAZON_REFRESH_TOKEN }}
+      # AMAZON_MARKETPLACE_ID: ${{ secrets.AMAZON_MARKETPLACE_ID }}
+
+      # ── SharePoint (uncomment when ready) ─────────────────────
+      # SHAREPOINT_CLIENT_ID: ${{ secrets.SHAREPOINT_CLIENT_ID }}
+      # SHAREPOINT_CLIENT_SECRET: ${{ secrets.SHAREPOINT_CLIENT_SECRET }}
+      # SHAREPOINT_TENANT_ID: ${{ secrets.SHAREPOINT_TENANT_ID }}
+      # SHAREPOINT_SITE_URL: ${{ secrets.SHAREPOINT_SITE_URL }}
+      # SHAREPOINT_FILE_PATH: ${{ secrets.SHAREPOINT_FILE_PATH }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run inventory sync
+        run: python run.py
+
+      - name: Upload Excel export as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: inventory-export
+          path: output/exports/*.xlsx
+          retention-days: 30
