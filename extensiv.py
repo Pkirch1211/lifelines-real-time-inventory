@@ -7,6 +7,9 @@ import base64
 import time
 import os
 import requests
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_URL = "https://secure-wms.com"
 TOKEN_URL = f"{BASE_URL}/AuthServer/api/Token"
