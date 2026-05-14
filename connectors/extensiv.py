@@ -39,6 +39,8 @@ def get_token() -> str:
     payload = {
         "grant_type": "client_credentials",
         "user_login": os.getenv("EXTENSIV_USER_LOGIN"),
+        "tpl": os.getenv("EXTENSIV_TPL_GUID"),
+        "user_login_id": os.getenv("EXTENSIV_USER_LOGIN_ID"),
     }
 
     resp = requests.post(TOKEN_URL, json=payload, headers=headers, timeout=15)
@@ -57,7 +59,6 @@ def fetch_inventory(page_size: int = 500) -> list[dict]:
     Handles pagination automatically and returns a flat list of records.
     """
     token = get_token()
-    tpl_guid = os.getenv("EXTENSIV_TPL_GUID")   # e.g. {1cc5cd16-1e2c-4fb2-89f6-b002aa8a66d6}
     customer_id = os.getenv("EXTENSIV_CUSTOMER_ID")
 
     headers = {
@@ -65,7 +66,6 @@ def fetch_inventory(page_size: int = 500) -> list[dict]:
         "Authorization": f"Bearer {token}",
     }
     params = {
-        "tpl": tpl_guid,
         "customerid": customer_id,
         "pgsiz": page_size,
         "pgnum": 1,
