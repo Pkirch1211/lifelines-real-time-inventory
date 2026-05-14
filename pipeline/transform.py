@@ -19,11 +19,13 @@ def normalize_extensiv(records: list[dict]) -> pd.DataFrame:
     rows = []
     for r in records:
         rows.append({
-            "sku": str(r.get("ItemIdentifier", {}).get("Sku", "")).strip().upper(),
-            "description": r.get("ItemIdentifier", {}).get("Description", ""),
-            "qty_on_hand": r.get("OnHand", 0),
-            "qty_available": r.get("Available", 0),
-            "location": r.get("FacilityIdentifier", {}).get("Name", ""),
+            "sku": str(r.get("itemIdentifier", {}).get("sku", "")).strip().upper(),
+            "description": r.get("itemIdentifier", {}).get("description", ""),
+            "qty_on_hand": r.get("onHand", 0),
+            "qty_available": r.get("available", 0),
+            "qty_allocated": r.get("allocated", 0),
+            "qty_on_hold": r.get("onHold", 0),
+            "location": r.get("facilityId", ""),
             "source": "extensiv",
             "raw": r,
         })
