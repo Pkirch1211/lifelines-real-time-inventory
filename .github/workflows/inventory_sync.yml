@@ -14,7 +14,7 @@ jobs:
       EXTENSIV_CLIENT_ID: ${{ secrets.EXTENSIV_CLIENT_ID }}
       EXTENSIV_CLIENT_SECRET: ${{ secrets.EXTENSIV_CLIENT_SECRET }}
       EXTENSIV_USER_LOGIN: ${{ secrets.EXTENSIV_USER_LOGIN }}
-      EXTENSIV_TPL_ID: ${{ secrets.EXTENSIV_TPL_ID }}
+      EXTENSIV_TPL_GUID: ${{ secrets.EXTENSIV_TPL_GUID }}
       EXTENSIV_CUSTOMER_ID: ${{ secrets.EXTENSIV_CUSTOMER_ID }}
 
       # ── Amazon SP-API (uncomment when ready) ──────────────────
