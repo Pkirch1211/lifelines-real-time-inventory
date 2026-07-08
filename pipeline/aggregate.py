@@ -32,12 +32,24 @@ def build_inventory(
 
     df = pd.concat(frames, ignore_index=True)
 
-    # Ensure consistent dtypes
-    for col in ["qty_on_hand", "qty_available"]:
+    # Ensure expected numeric columns exist and have consistent dtypes
+    numeric_cols = [
+        "qty_on_hand",
+        "qty_available",
+        "qty_allocated",
+        "qty_on_hold",
+        "qty_unavailable",
+        "qty_inbound",
+    ]
+
+    for col in numeric_cols:
+        if col not in df.columns:
+            df[col] = 0
         df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype(int)
 
-    if "qty_inbound" in df.columns:
-        df["qty_inbound"] = pd.to_numeric(df["qty_inbound"], errors="coerce").fillna(0).astype(int)
+    # Recalculate unavailable as the clean reconciliation column.
+    # This avoids relying on WMS-specific allocated/hold definitions.
+    df["qty_unavailable"] = df["qty_on_hand"] - df["qty_available"]
 
     return df
 
