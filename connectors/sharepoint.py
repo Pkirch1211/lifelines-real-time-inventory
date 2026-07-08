@@ -81,7 +81,7 @@ def _get_site_id(token: str) -> str:
     site_path = "/".join(parts[3:])
 
     site_resp = requests.get(
-        f"{GRAPH_BASE}/sites/{hostname}:/{site_path}",
+        f"{GRAPH_BASE}/sites/{hostname}:/{site_path}:",
         headers={"Authorization": f"Bearer {token}"},
         timeout=15,
     )
