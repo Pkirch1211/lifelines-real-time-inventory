@@ -28,6 +28,7 @@ def _require_env(name: str) -> str:
 def get_token() -> str:
     """
     Get a Microsoft Graph access token using Azure app-only auth.
+
     Required env vars:
       - SHAREPOINT_TENANT_ID
       - SHAREPOINT_CLIENT_ID
@@ -67,6 +68,9 @@ def _get_site_id(token: str) -> str:
 
     Example SHAREPOINT_SITE_URL:
       https://lifelines.sharepoint.com/sites/Operations
+
+    Microsoft Graph site lookup format:
+      /sites/{hostname}:/{site_path}:
     """
     site_url = _require_env("SHAREPOINT_SITE_URL").rstrip("/")
 
@@ -85,7 +89,16 @@ def _get_site_id(token: str) -> str:
         headers={"Authorization": f"Bearer {token}"},
         timeout=15,
     )
-    site_resp.raise_for_status()
+
+    try:
+        site_resp.raise_for_status()
+    except requests.HTTPError as exc:
+        raise requests.HTTPError(
+            f"Failed to resolve SharePoint site. "
+            f"SHAREPOINT_SITE_URL={site_url} | "
+            f"Graph URL={GRAPH_BASE}/sites/{hostname}:/{site_path}: | "
+            f"Response={site_resp.text}"
+        ) from exc
 
     return site_resp.json()["id"]
 
@@ -103,12 +116,23 @@ def fetch_po_tracking() -> list[dict]:
     site_id = _get_site_id(token)
     file_path = _require_env("SHAREPOINT_FILE_PATH")
 
+    if not file_path.startswith("/"):
+        file_path = "/" + file_path
+
     file_resp = requests.get(
         f"{GRAPH_BASE}/sites/{site_id}/drive/root:{file_path}:/content",
         headers={"Authorization": f"Bearer {token}"},
         timeout=30,
     )
-    file_resp.raise_for_status()
+
+    try:
+        file_resp.raise_for_status()
+    except requests.HTTPError as exc:
+        raise requests.HTTPError(
+            f"Failed to download SharePoint file. "
+            f"SHAREPOINT_FILE_PATH={file_path} | "
+            f"Response={file_resp.text}"
+        ) from exc
 
     df = pd.read_excel(io.BytesIO(file_resp.content))
     return df.to_dict(orient="records")
@@ -132,10 +156,13 @@ def upload_file(local_path: str, sharepoint_path: str) -> dict:
     """
     if not local_path:
         raise ValueError("Missing local_path")
+
     if not os.path.exists(local_path):
         raise FileNotFoundError(f"Local file does not exist: {local_path}")
+
     if not sharepoint_path:
         raise ValueError("Missing sharepoint_path")
+
     if not sharepoint_path.startswith("/"):
         sharepoint_path = "/" + sharepoint_path
 
@@ -153,5 +180,14 @@ def upload_file(local_path: str, sharepoint_path: str) -> dict:
             timeout=60,
         )
 
-    upload_resp.raise_for_status()
+    try:
+        upload_resp.raise_for_status()
+    except requests.HTTPError as exc:
+        raise requests.HTTPError(
+            f"Failed to upload file to SharePoint. "
+            f"local_path={local_path} | "
+            f"sharepoint_path={sharepoint_path} | "
+            f"Response={upload_resp.text}"
+        ) from exc
+
     return upload_resp.json()
